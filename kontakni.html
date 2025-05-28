@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Контактные данные. РГЗ</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon-32x32.png">
+    <link rel="icon" href="favicon-48x48.ico">
+</head>
+
+<body>
+    <header> 
+        НГТУ, ФБ, РГЗ по ВЕБ-программированию
+    </header>
+
+    <main>
+        <div class="menu">
+            <h1>Страницы сайта</h1>
+            <div class="spis">
+                <ol>
+                    <li><a href="company.html">О компании</a></li>
+                    <li><a href="novosty.html">Новости</a></li>
+                    <li><a href="kyrs.html">Курс валют</a></li>
+                    <li><a href="kontakni.html">Контактные данные</a></li>
+                    <li><a href="video.html">Видео</a></li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="contacts-container">
+            <div class="contact-info">
+                <h2>Контактная информация</h2>
+                
+                <div class="phones">
+                    <h3>Телефоны:</h3>
+                    <p>+7 (495) 540-20-80</p>
+                    <p>+7 (812) 305-08-00</p>
+                    <p class="work-hours">с 9:00 до 18:00 по рабочим дням</p>
+                </div>
+                
+                <h3>Адреса магазинов "Четыре глаза":</h3>
+                
+                <ul class="address-list">
+                    <li class="address-item" onclick="centerMap(55.7640, 37.5616)">
+                        <span class="metro">Метро: Улица 1905 года</span>
+                        <span class="address-text">г. Москва, Звенигородское ш., д. 4, ТЦ «Электроника на Пресне», 1 этаж, павильоны А14 и В13</span>
+                    </li>
+                    
+                    <li class="address-item" onclick="centerMap(55.6628, 37.6056)">
+                        <span class="metro">Метро: Нахимовский проспект</span>
+                        <span class="address-text">г. Москва, Нахимовский пр., д. 11, корп. 1</span>
+                    </li>
+                    
+                    <li class="address-item" onclick="centerMap(55.8660, 37.4879)">
+                        <span class="metro">Метро: Беломорская</span>
+                        <span class="address-text">г. Москва, Смольная ул., д. 63 Б, 1 этаж, торговый центр «Экстрим» павильон А-11</span>
+                    </li>
+                    
+                    <li class="address-item" onclick="centerMap(55.8038, 37.7451)">
+                        <span class="metro">Метро: Черкизовская</span>
+                        <span class="address-text">г. Москва, Щелковское ш., д. 3, стр.1, ТЦ «Город Хобби Корпус Б» (Глобус-Экстрим), 1 этаж, павильон №175</span>
+                    </li>
+                    
+                    <li class="address-item" onclick="centerMap(55.7942, 37.5875)">
+                        <span class="metro">Метро: Савеловская</span>
+                        <span class="address-text">г. Москва, ул. Сущевский Вал, д. 5С11, ТК «Савеловский»</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="map-container">
+                <h2>Магазины "Четыре глаза" на карте Москвы</h2>
+                <iframe id="yandex-map" src="https://yandex.ru/map-widget/v1/?um=constructor%3A5b3e8d1a8b1a8b1a8b1a8b1a8b1a8b1a8b1a8b1a8b1a8b1a8b1a8b1a8b1a8b1a&amp;source=constructor" frameborder="0"></iframe>
+            </div>
+        </div>
+
+        <script>
+            // Координаты магазинов "Четыре глаза"
+            const shops = [
+                {lat: 55.7640, lng: 37.5616, title: "Улица 1905 года"},
+                {lat: 55.6628, lng: 37.6056, title: "Нахимовский проспект"},
+                {lat: 55.8660, lng: 37.4879, title: "Беломорская"},
+                {lat: 55.8038, lng: 37.7451, title: "Черкизовская"},
+                {lat: 55.7942, lng: 37.5875, title: "Савеловская"}
+            ];
+            
+            // Функция для центрирования карты на выбранном магазине
+            function centerMap(lat, lng) {
+                const iframe = document.getElementById('yandex-map');
+                iframe.src = `https://yandex.ru/map-widget/v1/?ll=${lng}%2C${lat}&z=16&pt=${lng}%2C${lat}%2Ccomma`;
+            }
+            
+            // Инициализация карты со всеми магазинами
+            function initMap() {
+                const pointsParam = shops.map(shop => 
+                    `${shop.lng},${shop.lat},pm2gnm${shops.indexOf(shop)+1}`
+                ).join('~');
+                
+                document.getElementById('yandex-map').src = 
+                    `https://yandex.ru/map-widget/v1/?ll=37.6176%2C55.7558&z=11&pt=${pointsParam}`;
+            }
+            
+            // Инициализируем карту при загрузке
+            window.onload = initMap;
+        </script>
+    </main>
+    <footer>
+            &copy;Алёшкина Варя, ФБИ-34, 2 курс, 2025
+    </footer>
+
+</body>
+</html>
