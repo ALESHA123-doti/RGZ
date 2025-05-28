@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Курс швейцарского франка. РГЗ</title>
+        <link rel="stylesheet" href="main.css">
+        <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+        <link rel="icon" href="favicon-32x32.png">
+        <link rel="icon" href="favicon-48x48.ico">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+
+    <body>
+        <header> 
+            НГТУ, ФБ, РГЗ по ВЕБ-программированию
+        </header>
+
+        <main>
+            <div class="menu">
+                <h1>Страницы сайта</h1>
+                <div class="spis">
+                    <ol>
+                        <li><a href="company.html">О компании</a></li>
+                        <li><a href="novosty.html">Новости</a></li>
+                        <li><a href="kyrs.html">Курс валют</a></li>
+                        <li><a href="kontakni.html">Контактные данные</a></li>
+                        <li><a href="video.html">Видео</a></li>
+                    </ol>
+                </div>
+            </div>
+
+        <div class="container">
+            <h1>Курс швейцарского франка (CHF)</h1>
+            
+            <div class="calculator">
+                <div class="converter">
+                    <h3>Рубли в швейцарские франки</h3>
+                    <input type="number" id="rub-input" placeholder="Сумма в рублях" value="1000">
+                    <button onclick="convertFromRub()">Конвертировать</button>
+                    <div id="result-from-rub" class="result"></div>
+                </div>
+                
+                <div class="converter">
+                    <h3>Швейцарские франки в рубли</h3>
+                    <input type="number" id="chf-input" placeholder="Сумма в CHF" value="10">
+                    <button onclick="convertToRub()">Конвертировать</button>
+                    <div id="result-to-rub" class="result"></div>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <p class="rate-info">Текущий курс ЦБ РФ: <span id="current-rate" class="rate-value">-</span></p>
+                <p class="rate-info">Дата: <span id="current-date">-</span></p>
+            </div>
+            
+            <div class="chart-container">
+                <h3>Динамика курса CHF за последний месяц</h3>
+                <canvas id="rate-chart"></canvas>
+            </div>
+            <div id="chart-info"></div>
+            
+        </div>
+        </main>
+        <footer>
+            &copy;Алёшкина Варя, ФБИ-34, 2 курс, 2025
+        </footer>
+
+        <script>
+            // Текущий курс
+            let currentRate = 0;
+            let currentDate = '';
+            let rateChart;
+            
+            // Загрузка данных с API ЦБ РФ
+            async function loadRates() {
+                try {
+                    // Загрузка текущего курса
+                    const response = await fetch('https://www.cbr-xml-daily.ru/daily_json.js');
+                    const data = await response.json();
+                    
+                    // Получаем курс CHF
+                    const chfRate = data.Valute.CHF;
+                    currentRate = chfRate.Value;
+                    currentDate = new Date(data.Date).toLocaleDateString();
+                    
+                    // Обновляем информацию на странице
+                    document.getElementById('current-rate').textContent = `${currentRate.toFixed(2)} руб.`;
+                    document.getElementById('current-date').textContent = currentDate;
+                    
+                    // Загружаем исторические данные
+                    await loadHistoricalData();
+                    
+                } catch (error) {
+                    console.error('Ошибка загрузки данных:', error);
+                }
+            }
+            
+            // Загрузка исторических данных
+            async function loadHistoricalData() {
+                try {
+                    const today = new Date();
+                    const chartDates = [];
+                    const chartRates = [];
+                    
+                    // Получаем данные за последние 30 дней
+                    for (let i = 29; i >= 0; i--) {
+                        const date = new Date();
+                        date.setDate(today.getDate() - i);
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        
+                        try {
+                            const response = await fetch(`https://www.cbr-xml-daily.ru/archive/${year}/${month}/${day}/daily_json.js`);
+                            if (!response.ok) continue;
+                            
+                            const data = await response.json();
+                            if (data.Valute && data.Valute.CHF) {
+                                chartDates.push(date.toLocaleDateString());
+                                chartRates.push(data.Valute.CHF.Value);
+                            }
+                        } catch (e) {
+                            continue;
+                        }
+                    }
+                    
+                    // Если есть данные, показываем график
+                    if (chartDates.length > 0) {
+                        initChart(chartDates, chartRates);
+                    }
+                    
+                } catch (error) {
+                    console.error('Ошибка загрузки исторических данных:', error);
+                }
+            }
+            
+            // Инициализация графика
+            function initChart(dates, rates) {
+                const ctx = document.getElementById('rate-chart').getContext('2d');
+                
+                // Удаляем предыдущий график, если он существует
+                if (rateChart) {
+                    rateChart.destroy();
+                }
+                
+                rateChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'Курс CHF (руб.)',
+                            data: rates,
+                            backgroundColor: 'rgba(248, 170, 0)',
+                            borderColor: 'rgb(248, 170, 0)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgb(248, 170, 0)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        onClick: (e, activeEls) => {
+                            if (activeEls.length > 0) {
+                                const idx = activeEls[0].index;
+                                const date = dates[idx];
+                                const rate = rates[idx];
+                                
+                                document.getElementById('chart-info').innerHTML = `
+                                    <p class="rate-info">Дата: <strong>${date}</strong></p>
+                                    <p class="rate-info">Курс: <span class="rate-value">${rate.toFixed(2)} руб.</span> за 1 CHF</p>
+                                `;
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Конвертация рублей в CHF
+            function convertFromRub() {
+                if (currentRate === 0) return;
+                
+                const rubAmount = parseFloat(document.getElementById('rub-input').value);
+                if (isNaN(rubAmount)) return;
+                
+                const chfAmount = rubAmount / currentRate;
+                document.getElementById('result-from-rub').innerHTML = 
+                    `<span class="rate-value">${rubAmount.toFixed(2)} RUB</span> = <span class="rate-value">${chfAmount.toFixed(2)} CHF</span>`;
+            }
+            
+            // Конвертация CHF в рубли
+            function convertToRub() {
+                if (currentRate === 0) return;
+                
+                const chfAmount = parseFloat(document.getElementById('chf-input').value);
+                if (isNaN(chfAmount)) return;
+                
+                const rubAmount = chfAmount * currentRate;
+                document.getElementById('result-to-rub').innerHTML = 
+                    `<span class="rate-value">${chfAmount.toFixed(2)} CHF</span> = <span class="rate-value">${rubAmount.toFixed(2)} RUB</span>`;
+            }
+            
+            // Загружаем данные при открытии страницы
+            window.onload = loadRates;
+        </script>
+    </body>
+</html>
